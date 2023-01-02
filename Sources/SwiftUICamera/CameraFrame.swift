@@ -7,7 +7,7 @@ import Combine
 public final class CameraFrame: NSObject, ObservableObject {
   public typealias SharedBuffer = AnyPublisher<CVPixelBuffer?, Never>
   @Published private(set) var current: CVPixelBuffer?
-  private(set) var sharedBuffer: SharedBuffer?
+  public private(set) var sharedBuffer: SharedBuffer?
   public static let shared = CameraFrame()
   private let camera = Camera.shared
   
