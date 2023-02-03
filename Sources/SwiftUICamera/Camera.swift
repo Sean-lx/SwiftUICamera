@@ -214,9 +214,23 @@ public final class Camera: ObservableObject {
   private func getCameraDevice(_ position: AVCaptureDevice.Position = .back)
   -> AVCaptureDevice?
   {
-    let device = AVCaptureDevice.default(.builtInWideAngleCamera,
-                                         for: .video,
-                                         position: position)
+    let deviceTypes: [AVCaptureDevice.DeviceType] =
+    [.builtInTrueDepthCamera, .builtInDualCamera, .builtInWideAngleCamera]
+    let discoverySession =
+    AVCaptureDevice.DiscoverySession(deviceTypes: deviceTypes,
+                                     mediaType: .video,
+                                     position: .unspecified)
+    let devices = discoverySession.devices
+    guard !devices.isEmpty else {
+      return nil
+    }
+    
+    guard
+      let device = devices.first(where: { device in device.position == position })
+    else {
+      return devices.first
+    }
+    
     return device
   }
   
