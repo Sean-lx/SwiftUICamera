@@ -1,6 +1,7 @@
 //Created by: Sean Li
 
 import Foundation
+import UIKit
 import AVFoundation
 
 //MARK: - Camera Error Enum
@@ -57,6 +58,8 @@ public final class Camera: ObservableObject {
   private let sessionQueue = DispatchQueue(label: "org.madpro.chirping.camera.sessionq")
   private var currentSessionInput: AVCaptureInput?
   private let currentSessionOutput = AVCaptureVideoDataOutput()
+  private var position: AVCaptureDevice.Position = .back
+  private var orientation: AVCaptureVideoOrientation = .portrait
   
   // The current status of the camera
   private var status = Status.unconfigured
@@ -117,7 +120,53 @@ public final class Camera: ObservableObject {
       configure()
       return
     }
-    guard configureCaptureSessionOutput() else {
+    guard configureCaptureSessionOutput(orientation) else {
+      status = .unconfigured
+      configure()
+      return
+    }
+    open()
+  }
+  
+  //MARK: - Rotate to Device Orientation
+  public func rotateTo(_ orientation: UIDeviceOrientation) {
+    guard status == .configured else {
+      configure()
+      return
+    }
+    guard let currentInput = currentSessionInput else {
+      return
+    }
+    
+    close()
+    session.removeInput(currentInput)
+    session.removeOutput(currentSessionOutput)
+    guard configureCaptureSessionInput(position) else {
+      status = .unconfigured
+      configure()
+      return
+    }
+    
+    switch orientation {
+      
+    case .unknown:
+      break
+    case .portrait:
+      self.orientation = .portrait
+    case .portraitUpsideDown:
+      self.orientation = .portraitUpsideDown
+    case .landscapeLeft:
+      self.orientation = .landscapeRight
+    case .landscapeRight:
+      self.orientation = .landscapeLeft
+    case .faceUp:
+      break
+    case .faceDown:
+      break
+    @unknown default:
+      break
+    }
+    guard configureCaptureSessionOutput(self.orientation) else {
       status = .unconfigured
       configure()
       return
@@ -200,10 +249,10 @@ public final class Camera: ObservableObject {
       return
     }
     
-    guard configureCaptureSessionInput() else {
+    guard configureCaptureSessionInput(position) else {
       return
     }
-    guard configureCaptureSessionOutput() else {
+    guard configureCaptureSessionOutput(orientation) else {
       return
     }
     
@@ -272,7 +321,7 @@ public final class Camera: ObservableObject {
   }
   
   //MARK: - Output
-  private func configureCaptureSessionOutput() -> Bool {
+  private func configureCaptureSessionOutput(_ orientation: AVCaptureVideoOrientation = .portrait) -> Bool {
     /// Check to see if we can add AVCaptureVideoDataOutput
     /// to the session before adding it.
     /// This pattern is similar to when we added the input.
@@ -292,7 +341,7 @@ public final class Camera: ObservableObject {
     [kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA]
     currentSessionOutput.alwaysDiscardsLateVideoFrames = true
     let videoConnection = currentSessionOutput.connection(with: .video)
-    videoConnection?.videoOrientation = .portrait
+    videoConnection?.videoOrientation = orientation
     return true
   }
 }
