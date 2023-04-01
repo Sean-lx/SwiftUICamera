@@ -84,11 +84,15 @@ public final class Camera: ObservableObject {
   
   //MARK: - Power on/off
   public func open() {
-    session.startRunning()
+    sessionQueue.async {
+      self.session.startRunning()
+    }
   }
   
   public func close() {
-    session.stopRunning()
+    sessionQueue.async {
+      self.session.stopRunning()
+    }
   }
   
   //MARK: - Session Quality
@@ -341,7 +345,10 @@ public final class Camera: ObservableObject {
     [kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA]
     currentSessionOutput.alwaysDiscardsLateVideoFrames = true
     let videoConnection = currentSessionOutput.connection(with: .video)
-    videoConnection?.videoOrientation = orientation
+    if let orientationSupported = videoConnection?.isVideoOrientationSupported, orientationSupported == true {
+      videoConnection?.videoOrientation = orientation
+    }
+    
     return true
   }
 }
