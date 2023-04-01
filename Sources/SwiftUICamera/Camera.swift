@@ -156,9 +156,9 @@ public final class Camera: ObservableObject {
     case .portraitUpsideDown:
       self.orientation = .portraitUpsideDown
     case .landscapeLeft:
-      self.orientation = .landscapeRight
-    case .landscapeRight:
       self.orientation = .landscapeLeft
+    case .landscapeRight:
+      self.orientation = .landscapeRight
     case .faceUp:
       break
     case .faceDown:
